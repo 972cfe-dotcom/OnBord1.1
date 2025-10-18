@@ -1,6 +1,6 @@
 # Hello World - Google Cloud Auto-Deploy
 
-אתר Hello World עם פריסה אוטומטית ל-Google Cloud App Engine.
+אתר Hello World עם פריסה אוטומטית ל-Google Cloud Run.
 
 ## ✨ תכונות
 

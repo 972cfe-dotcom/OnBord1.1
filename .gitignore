@@ -27,3 +27,6 @@ Thumbs.db
 # Google Cloud
 .gcloud/
 gcloud-key.json
+
+# Docker
+.dockerignore
