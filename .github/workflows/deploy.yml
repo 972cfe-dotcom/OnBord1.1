@@ -1,0 +1,46 @@
+name: Deploy to Google Cloud
+
+# Workflow מופעל אוטומטית בכל push למאסטר
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # אפשרות להפעלה ידנית
+
+jobs:
+  deploy:
+    name: Deploy to Google App Engine
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --production
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Deploy to App Engine
+        run: |
+          gcloud app deploy app.yaml --quiet --promote --stop-previous-version
+      
+      - name: Deployment Success
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "🌐 Your app is live at: https://${{ secrets.GCP_PROJECT_ID }}.appspot.com"
