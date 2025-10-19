@@ -1,62 +1,128 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Middleware
+app.use(express.json());
+app.use(express.static('public'));
+
+// Frontend route - serve the calculator page
 app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="he" dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Hello World</title>
-      <style>
-        body {
-          margin: 0;
-          padding: 0;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .container {
-          text-align: center;
-          color: white;
-          padding: 40px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
-          backdrop-filter: blur(10px);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        }
-        h1 {
-          font-size: 4em;
-          margin: 0;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        p {
-          font-size: 1.5em;
-          margin-top: 20px;
-          opacity: 0.9;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>🌍 Hello World! 🚀</h1>
-        <p>האתר שלך באוויר על Google Cloud!</p>
-      </div>
-    </body>
-    </html>
-  `);
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+// Backend API - Calculator endpoint
+app.post('/api/calculate', (req, res) => {
+  try {
+    const { num1, num2, operation } = req.body;
+    
+    // Validation
+    if (num1 === undefined || num2 === undefined || !operation) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'נא לספק שני מספרים ופעולה חשבונית' 
+      });
+    }
+
+    const number1 = parseFloat(num1);
+    const number2 = parseFloat(num2);
+
+    if (isNaN(number1) || isNaN(number2)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'הערכים חייבים להיות מספרים תקינים' 
+      });
+    }
+
+    let result;
+    let operationSymbol;
+
+    // Perform calculation on server
+    switch (operation) {
+      case 'add':
+        result = number1 + number2;
+        operationSymbol = '+';
+        break;
+      case 'subtract':
+        result = number1 - number2;
+        operationSymbol = '-';
+        break;
+      case 'multiply':
+        result = number1 * number2;
+        operationSymbol = '×';
+        break;
+      case 'divide':
+        if (number2 === 0) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'לא ניתן לחלק באפס' 
+          });
+        }
+        result = number1 / number2;
+        operationSymbol = '÷';
+        break;
+      case 'power':
+        result = Math.pow(number1, number2);
+        operationSymbol = '^';
+        break;
+      case 'modulo':
+        if (number2 === 0) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'לא ניתן לחלק באפס (מודולו)' 
+          });
+        }
+        result = number1 % number2;
+        operationSymbol = '%';
+        break;
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          error: 'פעולה לא תקינה' 
+        });
+    }
+
+    // Log calculation on server
+    console.log(`[${new Date().toISOString()}] Calculation: ${number1} ${operationSymbol} ${number2} = ${result}`);
+
+    // Return result
+    res.json({
+      success: true,
+      result: result,
+      calculation: `${number1} ${operationSymbol} ${number2}`,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error in calculation:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'שגיאה בשרת בעת ביצוע החישוב' 
+    });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Visit: http://localhost:${PORT}`);
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    service: 'Calculator Backend API'
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    error: 'Endpoint not found' 
+  });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📱 Frontend: http://localhost:${PORT}`);
+  console.log(`🔧 Backend API: http://localhost:${PORT}/api/calculate`);
+  console.log(`❤️  Health Check: http://localhost:${PORT}/api/health`);
 });

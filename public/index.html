@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מחשבון - Frontend + Backend</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.9em;
+    }
+
+    .architecture {
+      background: #f0f0f0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 0.85em;
+      color: #555;
+    }
+
+    .architecture span {
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .flow-arrow {
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1.1em;
+      transition: border-color 0.3s;
+      direction: ltr;
+      text-align: left;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .operations {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .operation-btn {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1em;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .operation-btn:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+      transform: translateY(-2px);
+    }
+
+    .operation-btn.selected {
+      border-color: #667eea;
+      background: #667eea;
+      color: white;
+    }
+
+    .operation-btn .symbol {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .operation-btn .name {
+      font-size: 0.8em;
+    }
+
+    .calculate-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .calculate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .calculate-btn:active {
+      transform: translateY(0);
+    }
+
+    .calculate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result-container {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 10px;
+      border-right: 5px solid #667eea;
+      display: none;
+    }
+
+    .result-container.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .result-container.error {
+      background: #fff0f0;
+      border-right-color: #e74c3c;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-label {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .result-calculation {
+      font-size: 1.1em;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .result-value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .result-container.error .result-value {
+      color: #e74c3c;
+      font-size: 1.2em;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #667eea;
+      margin-top: 10px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 10px;
+      background: #e8f5e9;
+      border-radius: 8px;
+      font-size: 0.9em;
+      color: #2e7d32;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: #4caf50;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧮 מחשבון חכם</h1>
+    <p class="subtitle">חישובים מתקדמים בצד השרת</p>
+    
+    <div class="architecture">
+      <span>📱 Frontend (Browser)</span>
+      <span class="flow-arrow">→</span>
+      <span>🌐 HTTP Request</span>
+      <span class="flow-arrow">→</span>
+      <span>🖥️ Backend (Node.js)</span>
+      <span class="flow-arrow">→</span>
+      <span>💾 Processing</span>
+      <span class="flow-arrow">→</span>
+      <span>✅ Response</span>
+    </div>
+
+    <div class="input-group">
+      <label for="num1">מספר ראשון</label>
+      <input type="number" id="num1" placeholder="הכנס מספר..." step="any">
+    </div>
+
+    <div class="input-group">
+      <label for="num2">מספר שני</label>
+      <input type="number" id="num2" placeholder="הכנס מספר..." step="any">
+    </div>
+
+    <div class="input-group">
+      <label>בחר פעולה חשבונית</label>
+      <div class="operations">
+        <div class="operation-btn" data-operation="add">
+          <span class="symbol">+</span>
+          <span class="name">חיבור</span>
+        </div>
+        <div class="operation-btn" data-operation="subtract">
+          <span class="symbol">−</span>
+          <span class="name">חיסור</span>
+        </div>
+        <div class="operation-btn" data-operation="multiply">
+          <span class="symbol">×</span>
+          <span class="name">כפל</span>
+        </div>
+        <div class="operation-btn" data-operation="divide">
+          <span class="symbol">÷</span>
+          <span class="name">חילוק</span>
+        </div>
+        <div class="operation-btn" data-operation="power">
+          <span class="symbol">^</span>
+          <span class="name">חזקה</span>
+        </div>
+        <div class="operation-btn" data-operation="modulo">
+          <span class="symbol">%</span>
+          <span class="name">שארית</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="calculate-btn" id="calculateBtn">חשב בשרת 🚀</button>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>מעבד בשרת...</p>
+    </div>
+
+    <div class="result-container" id="resultContainer">
+      <div class="result-label">חישוב:</div>
+      <div class="result-calculation" id="calculation"></div>
+      <div class="result-label">תוצאה:</div>
+      <div class="result-value" id="result"></div>
+    </div>
+
+    <div class="status-indicator">
+      <div class="status-dot"></div>
+      <span>מחובר לשרת Backend</span>
+    </div>
+  </div>
+
+  <script>
+    let selectedOperation = null;
+
+    // Operation button selection
+    document.querySelectorAll('.operation-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Remove selection from all buttons
+        document.querySelectorAll('.operation-btn').forEach(b => 
+          b.classList.remove('selected')
+        );
+        
+        // Select this button
+        this.classList.add('selected');
+        selectedOperation = this.dataset.operation;
+      });
+    });
+
+    // Calculate button handler
+    document.getElementById('calculateBtn').addEventListener('click', async function() {
+      const num1 = document.getElementById('num1').value;
+      const num2 = document.getElementById('num2').value;
+      const resultContainer = document.getElementById('resultContainer');
+      const loading = document.getElementById('loading');
+      const calculateBtn = document.getElementById('calculateBtn');
+
+      // Validation
+      if (!num1 || !num2) {
+        showResult('נא להזין שני מספרים', '', true);
+        return;
+      }
+
+      if (!selectedOperation) {
+        showResult('נא לבחור פעולה חשבונית', '', true);
+        return;
+      }
+
+      // Show loading
+      loading.classList.add('show');
+      resultContainer.classList.remove('show');
+      calculateBtn.disabled = true;
+
+      try {
+        // Send request to backend
+        const response = await fetch('/api/calculate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            num1: parseFloat(num1),
+            num2: parseFloat(num2),
+            operation: selectedOperation
+          })
+        });
+
+        const data = await response.json();
+
+        // Hide loading
+        loading.classList.remove('show');
+        calculateBtn.disabled = false;
+
+        if (data.success) {
+          // Show success result
+          showResult(data.result, data.calculation, false);
+        } else {
+          // Show error
+          showResult(data.error, '', true);
+        }
+
+      } catch (error) {
+        loading.classList.remove('show');
+        calculateBtn.disabled = false;
+        showResult('שגיאת תקשורת עם השרת', '', true);
+        console.error('Error:', error);
+      }
+    });
+
+    // Enter key support
+    document.getElementById('num1').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') document.getElementById('num2').focus();
+    });
+
+    document.getElementById('num2').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') document.getElementById('calculateBtn').click();
+    });
+
+    function showResult(value, calculation, isError) {
+      const resultContainer = document.getElementById('resultContainer');
+      const resultValue = document.getElementById('result');
+      const calculationEl = document.getElementById('calculation');
+
+      resultValue.textContent = value;
+      calculationEl.textContent = calculation;
+
+      if (isError) {
+        resultContainer.classList.add('error');
+      } else {
+        resultContainer.classList.remove('error');
+      }
+
+      resultContainer.classList.add('show');
+    }
+
+    // Check backend health on load
+    async function checkBackendHealth() {
+      try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        console.log('Backend Status:', data);
+      } catch (error) {
+        console.error('Backend health check failed:', error);
+      }
+    }
+
+    checkBackendHealth();
+  </script>
+</body>
+</html>
